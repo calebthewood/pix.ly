@@ -1,3 +1,22 @@
 {% extends 'base.html' %}
 
-{% block body %} please upload your images here {%endblock%}
+{% block body %}
+<div>
+  <h1>please upload your images here </h1>
+
+  <form method="POST" id="ImageForm" enctype="multipart/form-data" action="/images/add">
+    {{ form.hidden_tag() }}
+
+    {% for field in form if field.widget.input_type != 'hidden' %}
+
+    {% for error in field.errors %}
+    <span class="text-danger">{{ error }}</span>
+    {% endfor %}
+
+    {{ field(placeholder=field.label.text) }}
+
+    {% endfor %}
+    <button class="btn btn-primary btn-lg">Sign me up!</button>
+  </form>
+</div>
+{%endblock%}
