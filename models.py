@@ -6,19 +6,35 @@ db = SQLAlchemy()
 class Follows(db.Model):
     """Connection of a follower <-> followed_user."""
 
-    __tablename__ = 'follows'
+    __tablename__ = 'photos'
 
-    user_being_followed_id = db.Column(
+    id = db.Column(
         db.Integer,
-        db.ForeignKey('users.id', ondelete="cascade"),
         primary_key=True,
     )
 
-    user_following_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete="cascade"),
-        primary_key=True,
+    image_url = db.Column(
+        db.Text,
+        nullable=False,
+        unique=True,
     )
+
+    image_key = db.Column(
+        db.Text,
+        nullable=False,
+    )
+
+    #optional TODO: to make it more complicated, we can do metadata_1, metadata_2
+    height = db.Column(
+        db.Text,
+        nullable=False,
+    )
+    #TODO: FIND OUT IF TIMESTAMP IS THE SAME FORMATTING FOR EXIF
+    width = db.Column(
+        db.Text,
+        nullable=False,
+    )
+
 
 
 def connect_db(app):
@@ -28,3 +44,7 @@ def connect_db(app):
 
     db.app = app
     db.init_app(app)
+
+
+
+

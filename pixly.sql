@@ -9,9 +9,8 @@ CREATE TABLE customers (
     id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     image_key text NOT NULL,
     image_url text NOT NULL,
-    image_location text
-    model text
-    time_stamp text
+    height text
+    width text
 );
 
 -- def getmetadata:

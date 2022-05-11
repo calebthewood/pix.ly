@@ -8,7 +8,6 @@
     5. write our paths
     6. Models and forms.
     7. write routes.
-    8. 
 
 
 
