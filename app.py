@@ -16,11 +16,6 @@ import uuid
 from botocore.exceptions import ClientError
 
 
-#/upload get form with image, save form, save data to db, done
-
-#/edit - download image(again),
-
-
 
 app = Flask(__name__)
 
@@ -117,15 +112,6 @@ def editImage(image):
 
 
 
-
-bucket_name = 'pix.ly'
-file_folder="files"
-downloads="downloads"
-svg_file = "files/1f418.svg"
-jpeg_file = "/Users/calebwood/Desktop/Rithm/week10/exercises/pixly/files/237-536x354.jpeg"
-png_file = "files/Screen Shot 2022-04-03 at 9.12.06 AM.png"
-expiration= 3600
-
 """ Connect to S3 Service """
 
 client_s3 = boto3.client(
@@ -136,11 +122,12 @@ client_s3 = boto3.client(
 )
 
 
-
 #TODO: move thesde back to helper file
 
-"""upload image to s3 bucket, return url"""
 def send_to_bucket(path, name, bucket="pix.ly"):
+    """upload image to s3 bucket
+    args( file path, file name, default bucket)
+    """
     try:
         print("uploading file...")
         client_s3.upload_file(path, bucket, name)
