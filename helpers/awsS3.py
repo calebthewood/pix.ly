@@ -21,15 +21,15 @@ client_s3 = boto3.client(
     aws_secret_access_key=secret_key
 )
 
-# try:
-#     print("uploading file...")
-#     s3.upload_file(png_file, bucket_name, "png_pic")
+try:
+    print("uploading file...")
+    s3.upload_file(png_file, bucket_name, "png_pic")
 
-# except ClientError as err:
-#     print("CLIENTERROR: ",err)
+except ClientError as err:
+    print("CLIENTERROR: ",err)
 
-# except Exception as err:
-#     print("ECEPTION: ",err)
+except Exception as err:
+    print("ECEPTION: ",err)
 
 
 """retrieving file url"""

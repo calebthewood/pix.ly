@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, Integer
 
 db = SQLAlchemy()
 
-class Image(db.Model):
+class Photos(db.Model):
     """Store Image key & url"""
 
     __tablename__ = 'images'
