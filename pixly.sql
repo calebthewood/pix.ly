@@ -5,18 +5,15 @@ CREATE DATABASE pixly;
 \connect pixly;
 
 CREATE TABLE images (
-    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    image_key text NOT NULL,
-    image_url text NOT NULL,
-    height text,
-    width text
-)
+    image_key text PRIMARY KEY,
+    image_url text NOT NULL
+);
 
-CREATE TABLE metadata (
+CREATE TABLE image_data (
     image_type text NOT NULL,
     image_value text NOT NULL,
-    image_id FOREIGN KEY
-)
+    image_key text REFERENCES images(image_key)
+);
 
 -- def getmetadata:
 --     SELECT location,model,time from photos where id = $1

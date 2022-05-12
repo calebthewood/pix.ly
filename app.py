@@ -1,9 +1,11 @@
+from ast import parse
 import os
 from flask import Flask, render_template, request, flash, redirect, url_for
 from unicodedata import name
 from forms import ImageForm
 from werkzeug.utils import secure_filename
-from PIL import Image, ExifTags, ImageFilter
+from PIL import Image, ImageFilter
+from PIL.ExifTags import TAGS
 import requests
 from io import BytesIO
 # from dotenv import load_dotenv
@@ -60,34 +62,34 @@ def addImage():
     #send image to s3
     #send metadata to metadata table
     #send image name & url to images table
-
+    #slugify filenames
     form = ImageForm()
 
     if form.validate_on_submit():
         print("FORM VALIDATED")
-
+        #sends to bucket
         filename = secure_filename(form.image.data.filename)
-        form.image.data.save('./static/downloads/' + filename)
-
+        form.image.data.save(f'./static/downloads/{filename}')
         image = Image.open(f'./static/downloads/{filename}')
-
-        image_blur = image.filter(ImageFilter.BLUR)
-        image_blur.save(f'./static/downloads/blur-{filename}')
+        # image_blur = image.filter(ImageFilter.BLUR)
+        # image_blur.save(f'./static/downloads/blur-{filename}')
         #do image manipulation here
-
-
-        send_to_bucket(f'./static/downloads/blur-{filename}', f'blur-{filename}')
-
-        # all image urls will be:
         image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{filename}'
+        send_to_bucket(f'./static/downloads/{filename}', f'{filename}')
 
-        #oh, my, god. We don't need to store the whole url,
-        #just the file name! url is always the same!
 
-        #redirect to images/image_id - need to strip file type off end.
-        #delete image file
+        #posts to databse
+        photo = Photos(image_key=filename, image_url=image_url)
+        db.session.add(photo)
 
-        return redirect(f'/images/{filename}')
+
+        
+
+        parseMetadata( image, filename)
+        
+        db.session.commit()
+
+        return redirect(f'/images/')
 
     return render_template("imageForm.html", form=form)
 
@@ -134,11 +136,22 @@ def send_to_bucket(path, name, bucket="pix.ly"):
 
 
 """Extracts exif data from image object"""
-def parseMetadata(image):
-    img_exif = image._getexif()
-    if img_exif:
-        for key, val in img_exif.items():
-            if key in ExifTags.TAGS:
-                print("THIS IS THE PIL EXIF",f'{ExifTags.TAGS[key]}:{val}')
-    #Raw exif looks like: {296: 2, 34665: 90, 274: 1, 282: 144.0, 283: 144.0, 40962: 1357, 40963: 1277, 37510: b'ASCII\x00\x00\x00Screenshot'}
-    #TODO: come back to it if we have more time for GPS
+def parseMetadata(image, image_key):
+    exif_data = image.getexif()
+    if exif_data:
+# iterating over all EXIF data fields
+        for tag_id in exif_data:
+            # get the tag name, instead of human unreadable tag id
+            tag = TAGS.get(tag_id, tag_id)
+            data = exif_data.get(tag_id)
+            # decode bytes 
+            if isinstance(data, bytes):
+                data = data.decode()
+                image_data =ImageData(image_key=image_key, image_type=tag,image_value=data)
+                db.session.add(image_data)
+                print(f"{tag:25}: {data}")
+            image_data =ImageData(image_key=image_key, image_type=tag,image_value=str(data))
+            db.session.add(image_data)
+            print(image_data)
+            #Raw exif looks like: {296: 2, 34665: 90, 274: 1, 282: 144.0, 283: 144.0, 40962: 1357, 40963: 1277, 37510: b'ASCII\x00\x00\x00Screenshot'}
+            #TODO: come back to it if we have more time for GPS

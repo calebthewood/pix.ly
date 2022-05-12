@@ -9,14 +9,10 @@ class Photos(db.Model):
 
     __tablename__ = 'images'
 
-    id = db.Column(
-        db.Integer,
-        primary_key=True,
-    )
-
     image_key = db.Column(
         db.Text,
         nullable=False,
+        primary_key = True
     )
 
     image_url = db.Column(
@@ -26,7 +22,7 @@ class Photos(db.Model):
     )
 
     image_data = db.relationship(
-        'image_data',
+        "ImageData",
         backref="images")
 
 
@@ -34,9 +30,9 @@ class Photos(db.Model):
         return f"<Image #{self.id}: {self.image_key}, {self.image_url}>"
 
     @classmethod
-    def add_image(key, url):
+    def add_image(self, key, url):
         """adds image to database"""
-        image = Image(
+        image = Photos(
             image_key=key,
             image_url=url,
         )
@@ -50,9 +46,9 @@ class ImageData(db.Model):
 
     __tablename__ = 'image_data'
 
-    image_id = db.Column(
+    image_key = db.Column(
         db.Integer,
-        db.ForeignKey( "images.id", ondelete="cascade"),
+        db.ForeignKey( "images.image_key", ondelete="cascade"),
         nullable=False,
         primary_key=True
     )
