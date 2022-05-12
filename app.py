@@ -3,7 +3,8 @@ from flask import Flask, render_template, request, flash, redirect, url_for
 from unicodedata import name
 from forms import ImageForm
 from werkzeug.utils import secure_filename
-from PIL import Image, ExifTags
+from PIL import Image, ExifTags, ImageFilter
+import requests
 from io import BytesIO
 # from dotenv import load_dotenv
 from models import db, connect_db, ImageData, Photos
@@ -12,8 +13,9 @@ import boto3
 from botocore.exceptions import ClientError
 
 
+#/upload get form with image, save form, save data to db, done
 
-
+#/edit - download image(again),
 
 
 
@@ -35,16 +37,16 @@ db.create_all()
 
 # @app.route('/', methods=["GET"])
 # def displayHome():
-
-
 #     return render_template("landing.html")
 
-
-
+"""Display Image from url from bucket"""
 @app.route('/images/<filename>', methods=["GET"])
 def displayImages(filename):
 
+    #downloads image url :)
     image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{filename}'
+    img = Image.open(requests.get(image_url, stream=True).raw)
+    img.save(f'./static/downloads/WALRUS.jpeg')
 
     return render_template("images.html", url=image_url)
 
@@ -52,8 +54,7 @@ def displayImages(filename):
 @app.route('/images/add', methods=["GET","POST"])
 def addImage():
 
- # dataflow: client -img-> form -img->
- #              server -img-> s3 -url-> server -data-> db
+ # dataflow: client -img-> form -img-> server -img-> s3, server -data-> db
 
     #take file from client/browser
     #send image to s3
@@ -66,12 +67,16 @@ def addImage():
         print("FORM VALIDATED")
 
         filename = secure_filename(form.image.data.filename)
-        form.image.data.save('downloads/' + filename)
+        form.image.data.save('./static/downloads/' + filename)
 
+        image = Image.open(f'./static/downloads/{filename}')
+
+        image_blur = image.filter(ImageFilter.BLUR)
+        image_blur.save(f'./static/downloads/blur-{filename}')
         #do image manipulation here
 
-        send_to_bucket(f'downloads/{filename}', filename)
 
+        send_to_bucket(f'./static/downloads/blur-{filename}', f'blur-{filename}')
 
         # all image urls will be:
         image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{filename}'
@@ -80,8 +85,9 @@ def addImage():
         #just the file name! url is always the same!
 
         #redirect to images/image_id - need to strip file type off end.
-        return redirect(f'/images/add')
+        #delete image file
 
+        return redirect(f'/images/{filename}')
 
     return render_template("imageForm.html", form=form)
 
@@ -103,18 +109,20 @@ client_s3 = boto3.client(
     aws_secret_access_key=app.config['SECRET_KEY']
 )
 
-# @app.route('/images/<image>', methods=["POST"])
-# def editImage(image):
-#     return render_template("editingPage.html")
+@app.route('/images/<image>', methods=["POST"])
+def editImage(image):
+
+
+    return render_template("editingPage.html")
 
 
 
 
 """upload image to s3 bucket, return url"""
-def send_to_bucket(image="", name="", bucket="pix.ly"):
+def send_to_bucket(path, name, bucket="pix.ly"):
     try:
         print("uploading file...")
-        client_s3.upload_file(image, bucket, name)
+        client_s3.upload_file(path, bucket, name)
 
         #client_s3.upload_fileobj(image.read(), bucket_name, "TESTINGG!!!")
 
