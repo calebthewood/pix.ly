@@ -85,7 +85,9 @@ def addImage():
         # im2 = BytesIO(form.image.data.read())
         # img = Image.open(form.image.data)
 
-        send_to_bucket(image, filename)
+        send_to_bucket(form.image.data)
+
+
 
 
         img_exif = image._getexif()
@@ -100,7 +102,6 @@ def addImage():
             for key, val in img_exif.items():
                 if key in ExifTags.TAGS:
                     print("THIS IS THE PIL EXIF",f'{ExifTags.TAGS[key]}:{val}')
-        breakpoint()
 
 
 
@@ -118,13 +119,13 @@ def addImage():
 #     return render_template("editingPage.html")
 
 
-def send_to_bucket(image, filename):
+def send_to_bucket(image):
     try:
         print("uploading file...")
-        client_s3.upload_file(image, bucket_name, filename)
+        client_s3.upload_fileobj(image.read(), bucket_name, "TESTINGG!!!")
 
     except ClientError as err:
         print("CLIENTERROR: ",err)
 
     except Exception as err:
-        print("ECEPTION: ",err)
+        print("EXCEPTION: ",err)
