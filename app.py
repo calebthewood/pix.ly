@@ -12,6 +12,7 @@ from io import BytesIO
 from models import db, connect_db, ImageData, Photos
 # load_dotenv()
 import boto3
+import uuid
 from botocore.exceptions import ClientError
 
 
@@ -50,6 +51,11 @@ def displayImages(filename):
     img = Image.open(requests.get(image_url, stream=True).raw)
     img.save(f'./static/downloads/WALRUS.jpeg')
 
+
+    # image_blur = image.filter(ImageFilter.BLUR)
+    # image_blur.save(f'./static/downloads/blur-{filename}')
+    #do image manipulation here
+
     return render_template("images.html", url=image_url)
 
 
@@ -68,25 +74,29 @@ def addImage():
     if form.validate_on_submit():
         print("FORM VALIDATED")
         #sends to bucket
+
+        size = 1200, 1200
         filename = secure_filename(form.image.data.filename)
+        file_name = uuid.uuid1()
+
         form.image.data.save(f'./static/downloads/{filename}')
         image = Image.open(f'./static/downloads/{filename}')
-        # image_blur = image.filter(ImageFilter.BLUR)
-        # image_blur.save(f'./static/downloads/blur-{filename}')
-        #do image manipulation here
-        image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{filename}'
-        send_to_bucket(f'./static/downloads/{filename}', f'{filename}')
+        image.thumbnail(size)
+        ext = image.format.lower()
 
+        image.save(f'./static/downloads/{file_name}.{ext}')
+
+        send_to_bucket(f'./static/downloads/{file_name}', file_name)
+
+        image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{file_name}'
 
         #posts to databse
-        photo = Photos(image_key=filename, image_url=image_url)
+        photo = Photos(image_key=f'{file_name}.{ext}', image_url=image_url)
         db.session.add(photo)
 
 
-        
-
         parseMetadata( image, filename)
-        
+
         db.session.commit()
 
         return redirect(f'/images/')
@@ -144,7 +154,7 @@ def parseMetadata(image, image_key):
             # get the tag name, instead of human unreadable tag id
             tag = TAGS.get(tag_id, tag_id)
             data = exif_data.get(tag_id)
-            # decode bytes 
+            # decode bytes
             if isinstance(data, bytes):
                 data = data.decode()
                 image_data =ImageData(image_key=image_key, image_type=tag,image_value=data)
