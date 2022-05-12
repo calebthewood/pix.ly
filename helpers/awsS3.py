@@ -2,8 +2,6 @@ import boto3
 from botocore.exceptions import ClientError
 import logging
 
-access_key = 'AKIARKJWSR3S3LJVR2L7'
-secret_key = '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'
 bucket_name = 'pix.ly'
 
 file_folder="files"
@@ -12,6 +10,15 @@ svg_file = "files/1f418.svg"
 jpeg_file = "/Users/calebwood/Desktop/Rithm/week10/exercises/pixly/files/237-536x354.jpeg"
 png_file = "files/Screen Shot 2022-04-03 at 9.12.06 AM.png"
 expiration= 3600
+
+# experimentation leftovers, if we need to format byte strings.
+# image = Image.open('downloads/' + filename
+# im = Image.open(BytesIO(form.image.data.read()))
+# im1 = Image.frombytes(image)
+# im2 = BytesIO(form.image.data.read())
+# img = Image.open(form.image.data)
+
+
 """ Connect to S3 Service """
 
 client_s3 = boto3.client(
