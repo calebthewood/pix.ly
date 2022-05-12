@@ -99,6 +99,9 @@ def addImage():
         parseMetadata(image, file_name)
         db.session.commit()
 
+        if os.path.exists(f'./static/downloads/{file_name}.{ext}'):
+            os.remove(f'./static/downloads/{file_name}.{ext}')
+
         return redirect(f'/images/{file_name}')
 
     return render_template("imageForm.html", form=form)
