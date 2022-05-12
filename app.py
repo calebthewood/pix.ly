@@ -42,21 +42,22 @@ db.create_all()
 # def displayHome():
 #     return render_template("landing.html")
 
-"""Display Image from url from bucket"""
-@app.route('/images/<filename>', methods=["GET"])
-def displayImages(filename):
 
-    #downloads image url :)
-    image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{filename}'
-    img = Image.open(requests.get(image_url, stream=True).raw)
-    img.save(f'./static/downloads/WALRUS.jpeg')
+# """Display Image from url from bucket"""
+# @app.route('/images/<filename>', methods=["GET"])
+# def displayImages(filename):
+
+#     #downloads image url :)
+#     image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{filename}'
+#     img = Image.open(requests.get(image_url, stream=True).raw)
+#     img.save(f'./static/downloads/WALRUS.jpeg')
 
 
-    # image_blur = image.filter(ImageFilter.BLUR)
-    # image_blur.save(f'./static/downloads/blur-{filename}')
-    #do image manipulation here
+#     # image_blur = image.filter(ImageFilter.BLUR)
+#     # image_blur.save(f'./static/downloads/blur-{filename}')
+#     #do image manipulation here
 
-    return render_template("images.html", url=image_url)
+#     return render_template("images.html", url=image_url)
 
 
 @app.route('/images/add', methods=["GET","POST"])
@@ -72,36 +73,46 @@ def addImage():
     form = ImageForm()
 
     if form.validate_on_submit():
-        print("FORM VALIDATED")
-        #sends to bucket
 
-        size = 1200, 1200
         filename = secure_filename(form.image.data.filename)
-        file_name = uuid.uuid1()
+        #Standardizes filenames
+        file_name = str(uuid.uuid1())
+        image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{file_name}'
 
         form.image.data.save(f'./static/downloads/{filename}')
         image = Image.open(f'./static/downloads/{filename}')
-        image.thumbnail(size)
-        ext = image.format.lower()
 
+        # Sets max resolution
+        size = 1200, 1200
+        image.thumbnail(size)
+
+        ext = image.format.lower()
         image.save(f'./static/downloads/{file_name}.{ext}')
 
-        send_to_bucket(f'./static/downloads/{file_name}', file_name)
-
-        image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{file_name}'
+        send_to_bucket(f'./static/downloads/{file_name}.{ext}', file_name)
 
         #posts to databse
-        photo = Photos(image_key=f'{file_name}.{ext}', image_url=image_url)
+        photo = Photos(image_key=f'{file_name}', image_url=image_url)
         db.session.add(photo)
 
 
-        parseMetadata( image, filename)
-
+        parseMetadata(image, file_name)
         db.session.commit()
 
-        return redirect(f'/images/')
+        return redirect(f'/images/{file_name}')
 
     return render_template("imageForm.html", form=form)
+
+
+@app.route('/images/<image>', methods=["GET", "POST"])
+def editImage(image):
+
+    photo = Photos.query.get_or_404(image)
+
+
+    return render_template("editingPage.html",photo=photo)
+
+
 
 
 bucket_name = 'pix.ly'
@@ -121,14 +132,9 @@ client_s3 = boto3.client(
     aws_secret_access_key=app.config['SECRET_KEY']
 )
 
-@app.route('/images/<image>', methods=["POST"])
-def editImage(image):
 
 
-    return render_template("editingPage.html")
-
-
-
+#TODO: move thesde back to helper file
 
 """upload image to s3 bucket, return url"""
 def send_to_bucket(path, name, bucket="pix.ly"):

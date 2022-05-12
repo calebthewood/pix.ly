@@ -1,3 +1,9 @@
 {% extends 'base.html' %}
 
-{% block body %} Create your own masterpiece {%endblock%}
+{% block body %}
+
+<h1>Create your own masterpiece</h1>
+<h3>{{ photo.image_key }}</h3>
+<img src="{{ photo.image_url }}" />
+
+{%endblock%}
