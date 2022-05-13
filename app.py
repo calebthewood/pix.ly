@@ -78,7 +78,8 @@ def addImage():
     #slugify filenames
 
     image_file = request.files["file"]
-
+    # if image_file.filename ==("/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/"):
+    #     return jsonify("OH NO")
     file_with_original_name = secure_filename(image_file.filename)
     #Standardizes filenames
     file_name = str(uuid.uuid1())
@@ -112,7 +113,7 @@ def addImage():
 
     if os.path.exists(f'./static/downloads/{file_with_original_name}'):
         os.remove(f'./static/downloads/{file_with_original_name}')
-    breakpoint()
+
 
     return jsonify(res_serialized[0])
 
