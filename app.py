@@ -70,47 +70,50 @@ def displayHome():
 @app.route('/images/add', methods=["GET","POST"])
 def addImage():
  # dataflow: client -img-> form -img-> server -img-> s3, server -data-> db
-
+    breakpoint()
     #take file from client/browser
     #send image to s3
     #send metadata to metadata table
     #send image name & url to images table
     #slugify filenames
-    form = ImageForm()
 
-    if form.validate_on_submit():
+    image_file = request.files["file"]
 
-        filename = secure_filename(form.image.data.filename)
-        #Standardizes filenames
-        file_name = str(uuid.uuid1())
-        image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{file_name}'
+    file_with_original_name = secure_filename(image_file.filename)
+    #Standardizes filenames
+    file_name = str(uuid.uuid1())
+    image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{file_name}'
 
-        form.image.data.save(f'./static/downloads/{filename}')
-        image = Image.open(f'./static/downloads/{filename}')
+    image_file.save(f'./static/downloads/{file_with_original_name}')
+    image = Image.open(f'./static/downloads/{file_with_original_name}')
 
-        # Sets max resolution
-        size = 1200, 1200
-        image.thumbnail(size)
+    # Sets max resolution
+    size = 1200, 1200
+    image.thumbnail(size)
 
-        ext = image.format.lower()
-        image.save(f'./static/downloads/{file_name}.{ext}')
+    ext = image.format.lower()
+    image.save(f'./static/downloads/{file_name}.{ext}')
 
-        send_to_bucket(f'./static/downloads/{file_name}.{ext}', file_name)
+    send_to_bucket(f'./static/downloads/{file_name}.{ext}', file_name)
 
-        #posts to databse
-        photo = Photos(image_key=f'{file_name}', image_url=image_url)
-        db.session.add(photo)
+    #posts to databse
+    photo = Photos(image_key=f'{file_name}', image_url=image_url)
+    db.session.add(photo)
 
 
-        parseMetadata(image, file_name)
-        db.session.commit()
+    parseMetadata(image, file_name)
+    db.session.commit()
 
-        if os.path.exists(f'./static/downloads/{file_name}.{ext}'):
-            os.remove(f'./static/downloads/{file_name}.{ext}')
+    if os.path.exists(f'./static/downloads/{file_name}.{ext}'):
+        os.remove(f'./static/downloads/{file_name}.{ext}')
 
-        return redirect(f'/images/{file_name}')
+    if os.path.exists(f'./static/downloads/{file_with_original_name}'):
+        os.remove(f'./static/downloads/{file_with_original_name}')
 
-    return render_template("imageForm.html", form=form)
+
+    return {"file_name" : file_name}
+
+
 
 
 @app.route('/images/<image>', methods=["GET", "POST"])
