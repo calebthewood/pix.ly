@@ -1,7 +1,9 @@
 from ast import parse
 import os
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, jsonify, render_template, request, flash, redirect, url_for
 from unicodedata import name
+
+from sqlalchemy import null
 from forms import ImageForm
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageFilter
@@ -14,10 +16,12 @@ from models import db, connect_db, ImageData, Photos
 import boto3
 import uuid
 from botocore.exceptions import ClientError
-
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+
+CORS(app)
 
 ### S3 Keys
 app.config['ACCESS_KEY'] = os.environ['ACCESS_KEY']
@@ -33,11 +37,19 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 connect_db(app)
 db.create_all()
 
-# @app.route('/', methods=["GET"])
-# def displayHome():
-#     return render_template("landing.html")
+@app.route('/', methods=["GET"])
+def displayHome():
+    all_images = Photos.query.all()
+    if all_images: #[{img}]
+        output = serialize(all_images)
+        # images = [image.serialize() for image in all_images]
+        return jsonify(output)
+    else:
+        return jsonify({"error": "no images yet.."})
 
-
+#  images = {images: [{image object}, {image object}...]}
+#  .map(image_key, image_url <single card {redirect}>)
+#  route -> single <image card button=>onclick=gets form component ajax call state image onsubmit=>upload image, database, delete file> 
 # """Display Image from url from bucket"""
 # @app.route('/images/<filename>', methods=["GET"])
 # def displayImages(filename):
@@ -57,7 +69,6 @@ db.create_all()
 
 @app.route('/images/add', methods=["GET","POST"])
 def addImage():
-
  # dataflow: client -img-> form -img-> server -img-> s3, server -data-> db
 
     #take file from client/browser
@@ -106,7 +117,7 @@ def addImage():
 def editImage(image):
 
     photo = Photos.query.get_or_404(image)
-
+    breakpoint()
 
     return render_template("editingPage.html",photo=photo)
 
@@ -161,3 +172,16 @@ def parseMetadata(image, image_key):
             print(image_data)
             #Raw exif looks like: {296: 2, 34665: 90, 274: 1, 282: 144.0, 283: 144.0, 40962: 1357, 40963: 1277, 37510: b'ASCII\x00\x00\x00Screenshot'}
             #TODO: come back to it if we have more time for GPS
+
+def serialize(images):
+    output = []
+    for image in images:
+        tags = []
+        for exif in image.image_data:
+            tags.append(exif.serialize())
+        variable = {"imageKey": image.image_key,
+        "imageUrl": image.image_url,
+        "imageData": tags
+        }
+        output.append(variable)
+    return output

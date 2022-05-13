@@ -38,6 +38,14 @@ class Photos(db.Model):
         )
         db.session.add(image)
         return image
+    
+    def serialize(self):
+        """Serialize number fact dicts to a dict of number fact info."""
+
+        return {
+            "imageKey": self.image_key,
+            "imageUrl": self.image_url,
+        }
 
 
 
@@ -64,6 +72,14 @@ class ImageData(db.Model):
         nullable=False,
         unique=True,
     )
+    def serialize(self):
+        """Serialize number fact dicts to a dict of number fact info."""
+
+        return {
+            "exifField": self.image_type,
+            "exifValue": self.image_value
+        }
+
 
 
 
