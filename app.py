@@ -70,7 +70,7 @@ def displayHome():
 @app.route('/images/add', methods=["GET","POST"])
 def addImage():
  # dataflow: client -img-> form -img-> server -img-> s3, server -data-> db
-    breakpoint()
+
     #take file from client/browser
     #send image to s3
     #send metadata to metadata table
@@ -93,7 +93,7 @@ def addImage():
 
     ext = image.format.lower()
     image.save(f'./static/downloads/{file_name}.{ext}')
-
+    # breakpoint()
     send_to_bucket(f'./static/downloads/{file_name}.{ext}', file_name)
 
     #posts to databse
@@ -103,15 +103,18 @@ def addImage():
 
     parseMetadata(image, file_name)
     db.session.commit()
+    res_image = Photos.query.filter_by(image_key=file_name).first()
+
+    res_serialized = serialize([res_image])
 
     if os.path.exists(f'./static/downloads/{file_name}.{ext}'):
         os.remove(f'./static/downloads/{file_name}.{ext}')
 
     if os.path.exists(f'./static/downloads/{file_with_original_name}'):
         os.remove(f'./static/downloads/{file_with_original_name}')
+    breakpoint()
 
-
-    return {"file_name" : file_name}
+    return jsonify(res_serialized[0])
 
 
 
@@ -142,6 +145,7 @@ def send_to_bucket(path, name, bucket="pix.ly"):
     """upload image to s3 bucket
     args( file path, file name, default bucket)
     """
+
     try:
         print("uploading file...")
         client_s3.upload_file(path, bucket, name)
