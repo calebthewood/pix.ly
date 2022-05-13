@@ -1,6 +1,6 @@
 from ast import parse
 import os
-from flask import Flask, jsonify, render_template, request, flash, redirect, url_for
+from flask import Flask, jsonify, render_template, request, flash, redirect, send_file, url_for
 from unicodedata import name
 
 from sqlalchemy import null
@@ -47,12 +47,12 @@ def displayHome():
     else:
         return jsonify({"error": "no images yet.."})
 
-#  images = {images: [{image object}, {image object}...]}
-#  .map(image_key, image_url <single card {redirect}>)
-#  route -> single <image card button=>onclick=gets form component ajax call state image onsubmit=>upload image, database, delete file> 
-# """Display Image from url from bucket"""
-# @app.route('/images/<filename>', methods=["GET"])
-# def displayImages(filename):
+    #  images = {images: [{image object}, {image object}...]}
+    #  .map(image_key, image_url <single card {redirect}>)
+    #  route -> single <image card button=>onclick=gets form component ajax call state image onsubmit=>upload image, database, delete file> 
+    # """Display Image from url from bucket"""
+    # @app.route('/images/<filename>', methods=["GET"])
+    # def displayImages(filename):
 
 #     #downloads image url :)
 #     image_url = f'https://s3.us-west-1.amazonaws.com/pix.ly/{filename}'
@@ -117,7 +117,7 @@ def addImage():
 def editImage(image):
 
     photo = Photos.query.get_or_404(image)
-    breakpoint()
+
 
     return render_template("editingPage.html",photo=photo)
 
@@ -185,3 +185,20 @@ def serialize(images):
         }
         output.append(variable)
     return output
+
+# @app.route('/test', methods=["GET"])
+# def editImage():
+    
+
+#     return send_file("./static/downloads/b0d39268-d23d-11ec-a33d-8c85902145ec.png")
+
+
+
+""" Connect to S3 Service """
+
+client_s3 = boto3.client(
+    's3',
+    'us-west-1',
+    aws_access_key_id=app.config['ACCESS_KEY'],
+    aws_secret_access_key=app.config['SECRET_KEY']
+)
