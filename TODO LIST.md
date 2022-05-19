@@ -1,5 +1,5 @@
 # Pixly Task List:
-Home base for ongoing pixly work
+Home base for ongoing pixly work - todos currently listed in no particular order.
 
 
 ## Flask Backend Todos:
