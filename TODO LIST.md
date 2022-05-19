@@ -50,7 +50,7 @@ Develop a mvp plan: high level plan for *minimum viable product*
     - add additional fun stuff to stretch goals.
 
 
-1 for filters, I think we could easily pre-render several versions of the image, send them all to the front end, and let the user toggle between them.  However, if we want to implement sliders... we'll need to experiment to see if that's workable using ajax, or if we need to do frontend algorithms.
+1. for filters, I think we could easily pre-render several versions of the image, send them all to the front end, and let the user toggle between them.  However, if we want to implement sliders... we'll need to experiment to see if that's workable using ajax, or if we need to do frontend algorithms.
     - If we do front end, this tutorial looks super reasonable:
     - https://hackernoon.com/understanding-basic-image-processing-algorithms-a-hands-on-javascript-tutorial-8r3u32qk
 2. Once we get the filters all hooked up, we can see how quickly flask can process and return an image. If it's not *very* quick then lets probaly lean into a combination of prerendering some things, like filtered images, and doing other things, like RGB sliders, in the browser?
@@ -59,7 +59,7 @@ Develop a mvp plan: high level plan for *minimum viable product*
 ## Stretch Goals
 Thinking we can set phase 1 goals in the roadmap section, and then start adding phase 2 ideas here that we can implement once we have all the core features in place.
 
-- user system to see your personal images?
+1. user system to see your personal images?
 
 
 
